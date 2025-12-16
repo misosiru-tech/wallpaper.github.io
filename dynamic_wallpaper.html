@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallpaper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: #000;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .hamburger {
+            position: fixed;
+            top: 25px;
+            left: 25px;
+            width: 40px;
+            height: 40px;
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 101;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+
+        .hamburger:hover {
+            background: rgba(40, 40, 40, 0.9);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .hamburger span {
+            width: 20px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s;
+        }
+
+        .hamburger.open span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .hamburger.open span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.open span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        .controls {
+            position: fixed;
+            top: 80px;
+            left: 25px;
+            background: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.9);
+            z-index: 100;
+            transform: translateX(-120%);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .controls.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .controls button {
+            background: rgba(60, 60, 60, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+            padding: 10px 18px;
+            margin: 6px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            width: 140px;
+            display: block;
+            transition: all 0.3s;
+            letter-spacing: 0.5px;
+        }
+
+        .controls button:hover {
+            background: rgba(80, 80, 80, 0.7);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 1);
+        }
+
+        .controls button.active {
+            background: rgba(100, 100, 100, 0.8);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: #fff;
+        }
+
+        h3 {
+            margin-bottom: 15px;
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <div class="hamburger" onclick="toggleMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    <div class="controls" id="menu">
+        <h3>Pattern</h3>
+        <button onclick="setPattern('fractal')" class="active" id="btn-fractal">Fractal</button>
+        <button onclick="setPattern('bubbles')" id="btn-bubbles">Bubbles</button>
+        <button onclick="setPattern('particles')" id="btn-particles">Particles</button>
+        <button onclick="setPattern('waves')" id="btn-waves">Waves</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let w, h;
+        let currentPattern = 'fractal';
+        let animationId;
+
+        function toggleMenu() {
+            const menu = document.getElementById('menu');
+            const hamburger = document.querySelector('.hamburger');
+            menu.classList.toggle('show');
+            hamburger.classList.toggle('open');
+        }
+
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        // フラクタルパターン
+        function drawFractal() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, w, h);
+
+            const t = Date.now() * 0.001;
+            const branches = 8;
+
+            for (let i = 0; i < branches; i++) {
+                const angle = (i / branches) * Math.PI * 2 + t * 0.2;
+                const x = w / 2 + Math.cos(angle) * 200 * Math.sin(t * 0.5);
+                const y = h / 2 + Math.sin(angle) * 200 * Math.sin(t * 0.5);
+
+                ctx.beginPath();
+                ctx.moveTo(w / 2, h / 2);
+                
+                for (let j = 0; j < 5; j++) {
+                    const subAngle = angle + Math.sin(t + j) * 0.5;
+                    const radius = 50 + j * 40;
+                    const px = x + Math.cos(subAngle) * radius;
+                    const py = y + Math.sin(subAngle) * radius;
+                    ctx.lineTo(px, py);
+                }
+
+                const hue = (i / branches * 360 + t * 50) % 360;
+                ctx.strokeStyle = `hsla(${hue}, 70%, 60%, 0.6)`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            animationId = requestAnimationFrame(drawFractal);
+        }
+
+        // バブルパターン
+        const bubbles = [];
+        function initBubbles() {
+            bubbles.length = 0;
+            for (let i = 0; i < 30; i++) {
+                bubbles.push({
+                    x: Math.random() * w,
+                    y: Math.random() * h,
+                    r: Math.random() * 50 + 20,
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2,
+                    hue: Math.random() * 360
+                });
+            }
+        }
+
+        function drawBubbles() {
+            ctx.fillStyle = 'rgba(10, 10, 30, 0.1)';
+            ctx.fillRect(0, 0, w, h);
+
+            bubbles.forEach(b => {
+                b.x += b.vx;
+                b.y += b.vy;
+
+                if (b.x < 0 || b.x > w) b.vx *= -1;
+                if (b.y < 0 || b.y > h) b.vy *= -1;
+
+                const gradient = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+                gradient.addColorStop(0, `hsla(${b.hue}, 80%, 60%, 0.8)`);
+                gradient.addColorStop(1, `hsla(${b.hue}, 80%, 40%, 0)`);
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+                ctx.fill();
+
+                b.hue += 0.5;
+            });
+
+            animationId = requestAnimationFrame(drawBubbles);
+        }
+
+        // パーティクルパターン
+        const particles = [];
+        function initParticles() {
+            particles.length = 0;
+            for (let i = 0; i < 100; i++) {
+                particles.push({
+                    x: Math.random() * w,
+                    y: Math.random() * h,
+                    vx: (Math.random() - 0.5) * 3,
+                    vy: (Math.random() - 0.5) * 3,
+                    size: Math.random() * 3 + 1,
+                    hue: Math.random() * 360
+                });
+            }
+        }
+
+        function drawParticles() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, w, h);
+
+            particles.forEach((p, i) => {
+                p.x += p.vx;
+                p.y += p.vy;
+
+                if (p.x < 0 || p.x > w) p.vx *= -1;
+                if (p.y < 0 || p.y > h) p.vy *= -1;
+
+                ctx.fillStyle = `hsla(${p.hue}, 100%, 60%, 0.8)`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 近くのパーティクルと線で繋ぐ
+                for (let j = i + 1; j < particles.length; j++) {
+                    const p2 = particles[j];
+                    const dx = p.x - p2.x;
+                    const dy = p.y - p2.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < 150) {
+                        ctx.strokeStyle = `hsla(${(p.hue + p2.hue) / 2}, 100%, 60%, ${1 - dist / 150})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                }
+
+                p.hue += 0.3;
+            });
+
+            animationId = requestAnimationFrame(drawParticles);
+        }
+
+        // ウェーブパターン
+        function drawWaves() {
+            ctx.fillStyle = 'rgba(0, 0, 20, 0.1)';
+            ctx.fillRect(0, 0, w, h);
+
+            const t = Date.now() * 0.001;
+            const waves = 5;
+
+            for (let i = 0; i < waves; i++) {
+                ctx.beginPath();
+                const hue = (i / waves * 360 + t * 30) % 360;
+                ctx.strokeStyle = `hsla(${hue}, 70%, 50%, 0.6)`;
+                ctx.lineWidth = 3;
+
+                for (let x = 0; x <= w; x += 5) {
+                    const y = h / 2 + 
+                        Math.sin(x * 0.01 + t + i * 0.5) * 80 +
+                        Math.sin(x * 0.02 + t * 1.3 + i) * 40;
+                    
+                    if (x === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.stroke();
+            }
+
+            animationId = requestAnimationFrame(drawWaves);
+        }
+
+        function setPattern(pattern) {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+
+            currentPattern = pattern;
+
+            // ボタンのアクティブ状態を更新
+            document.querySelectorAll('.controls button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`btn-${pattern}`).classList.add('active');
+
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, w, h);
+
+            switch(pattern) {
+                case 'fractal':
+                    drawFractal();
+                    break;
+                case 'bubbles':
+                    initBubbles();
+                    drawBubbles();
+                    break;
+                case 'particles':
+                    initParticles();
+                    drawParticles();
+                    break;
+                case 'waves':
+                    drawWaves();
+                    break;
+            }
+        }
+
+        // 初期パターンを開始
+        setPattern('fractal');
+    </script>
+</body>
+</html>
