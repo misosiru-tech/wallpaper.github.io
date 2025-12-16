@@ -297,18 +297,21 @@
             ctx.fillRect(0, 0, w, h);
 
             const t = Date.now() * 0.001;
-            const waves = 5;
+            const waves = 8;
 
             for (let i = 0; i < waves; i++) {
                 ctx.beginPath();
                 const hue = (i / waves * 360 + t * 30) % 360;
-                ctx.strokeStyle = `hsla(${hue}, 70%, 50%, 0.6)`;
-                ctx.lineWidth = 3;
+                ctx.strokeStyle = `hsla(${hue}, 70%, 50%, 0.5)`;
+                ctx.lineWidth = 2;
+
+                const yOffset = (h / (waves + 1)) * (i + 1);
 
                 for (let x = 0; x <= w; x += 5) {
-                    const y = h / 2 + 
-                        Math.sin(x * 0.01 + t + i * 0.5) * 80 +
-                        Math.sin(x * 0.02 + t * 1.3 + i) * 40;
+                    const y = yOffset + 
+                        Math.sin(x * 0.01 + t + i * 0.5) * 60 +
+                        Math.sin(x * 0.02 + t * 1.3 + i) * 30 +
+                        Math.sin(x * 0.005 + t * 0.7) * 40;
                     
                     if (x === 0) {
                         ctx.moveTo(x, y);
